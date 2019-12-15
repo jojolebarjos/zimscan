@@ -7,14 +7,18 @@ import struct
 from .record import Record
 
 
+# Define little-endian integer types
 uint8 = numpy.dtype(numpy.uint8).newbyteorder('<')
 uint16 = numpy.dtype(numpy.uint16).newbyteorder('<')
 uint32 = numpy.dtype(numpy.uint32).newbyteorder('<')
 uint64 = numpy.dtype(numpy.uint64).newbyteorder('<')
 
+
+# Define binary structures
 header = struct.Struct('<LHH16sLLQQQQLLQ')
 
 
+# Archive iterator
 class Reader:
     ''' ZIM archive reader.
     

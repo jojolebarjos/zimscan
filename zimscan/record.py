@@ -2,6 +2,7 @@
 import io
 
 
+# Archive entry container
 class Record(io.RawIOBase):
     '''ZIM article.
     
@@ -16,9 +17,11 @@ class Record(io.RawIOBase):
         self._file = file
         self._remaining = length
     
+    # Read-only
     def readable(self):
         return True
     
+    # Everything else is already implemented in parent
     def readinto(self, buffer):
         
         # Check that we are still allowed to read
