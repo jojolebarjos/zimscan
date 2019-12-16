@@ -1,42 +1,47 @@
 
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from functools import partial
 import io
 import re
 from tqdm import tqdm
 
 from zimscan import Reader
 
-from clean import iterate_paragraphs
+from clean import extract_text
+from worker import lazy_map
 
 
-# Valid HTML pages are expected to have a canonical link
-canonical_regex = re.compile(br'<link rel="canonical" href="([^"]+)">')
+# Valid HTML pages are expected to have a namespace
 ns_regex = re.compile(br'<body class="[^"]*\bns-(\d+)\b[^"]*">')
 
-# Process dump
-input_path = 'wikipedia_en_all_nopic_2019-10.zim'
-with Reader(io.open(input_path, 'rb')) as reader:
 
-    # Output everything in a single file
-    output_path = 'wikipedia.en.txt'
-    with io.open(output_path, 'w', encoding='utf-8', newline='\n') as output:
-    
-        # Iterate over entries
-        for record in tqdm(reader):
-            content = record.read()
+# Iterate articles
+def iterate_contents(reader):
+    for record in reader:
+        content = record.read()
+        match = ns_regex.search(content)
+        if match is not None and match.group(1) == b'0':
+            yield content
+
+
+# Spawn pool
+with ProcessPoolExecutor() as executor:
+
+    # Process dump
+    input_path = 'wikipedia_en_all_nopic_2019-10.zim'
+    with Reader(io.open(input_path, 'rb')) as reader:
+
+        # Output everything in a single file
+        output_path = 'wikipedia.en.txt'
+        with io.open(output_path, 'w', encoding='utf-8', newline='\n') as output:
             
-            # Find canonical URL as proof of being an HTML page
-            match = canonical_regex.search(content, endpos=1000)
-            if match is not None:
-                url = match.group(1).decode('utf-8')
+            # Wrap in parallel executor
+            iterator = iterate_contents(reader)
+            iterator = (partial(extract_text, content) for content in iterator)
+            iterator = lazy_map(iterator, executor)
+            
+            for text in tqdm(iterator, total=len(reader)):
                 
-                # Furthermore, only consider pages in namespace 0
-                match = ns_regex.search(content)
-                if match is not None and match.group(1) == b'0':
-                    
-                    # Output document as plain text, separated by empty lines
-                    output.write(url)
-                    output.write('\n')
-                    for paragraph in iterate_paragraphs(content):
-                        output.write(paragraph)
-                        output.write('\n')
-                    output.write('\n')
+                # Output document as plain text, separated by empty lines
+                output.write(text)
+                output.write('\n\n')

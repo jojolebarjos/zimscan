@@ -131,13 +131,8 @@ def iterate_chunks(element):
         yield from chunks()
 
 
-# Parse and clean text
-def iterate_paragraphs(content):
-    
-    # Parse document
-    tree = html.fromstring(content)
-    
-    # Iterate and aggregate chunks
+# Get all paragraphs
+def iterate_paragraphs(tree):
     buffer = []
     for chunk in iterate_chunks(tree.body):
         if chunk is split:
@@ -146,9 +141,17 @@ def iterate_paragraphs(content):
             text = whitespace_regex.sub(' ', text)
             text = text.strip()
             # TODO maybe ignore stuff in "See also", "References", "External links", "Notes"
-            # TODO add length/sanity check (e.g. min length, need to end with punctuation)
+            # TODO add length/sanity check (e.g. min length, need to end with punctuation, ratio of punctuation/latin chars/digits)
+            # TODO ignore page with "may refer to"?
             if text and not text.startswith('This article is issued from Wikipedia.'):
                 yield text
             buffer.clear()
         else:
             buffer.append(chunk)
+
+
+# Parse and clean text
+def extract_text(content):
+    tree = html.fromstring(content)
+    text = '\n'.join(iterate_paragraphs(tree))
+    return text
