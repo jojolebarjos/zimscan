@@ -9,12 +9,12 @@ with open('README.md', 'r', encoding='utf-8') as file:
 setup(
 
     name = 'zimscan',
-    version = '0.1.0',
+    version = '0.1.1',
     packages = find_packages(),
 
     author = 'Johan Berdat',
     author_email = 'jojolebarjos@gmail.com',
-    license_file = 'LICENSE',
+    license = 'MIT',
 
     url = 'https://gitlab.com/jojolebarjos/zimscan',
 
@@ -33,14 +33,14 @@ setup(
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: Freely Distributable',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3 :: Only',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 
     install_requires = [],
-    
+
     python_requires = '>=3.5',
 
 )
