@@ -1,17 +1,26 @@
 
 from setuptools import find_packages, setup
 
+
+with open('README.md', 'r', encoding='utf-8') as file:
+    long_description = file.read()
+
+
 setup(
 
     name = 'zimscan',
-    version = '0.0.1',
+    version = '0.1.0',
     packages = find_packages(),
 
-    author = 'Jojo le Barjos',
+    author = 'Johan Berdat',
     author_email = 'jojolebarjos@gmail.com',
     license_file = 'LICENSE',
 
+    url = 'https://gitlab.com/jojolebarjos/zimscan',
+
     description = 'ZIM file iterator',
+    long_description = long_description,
+    long_description_content_type = 'text/markdown',
 
     keywords = [
         'zim',
@@ -22,7 +31,7 @@ setup(
     ],
 
     classifiers = [
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: Freely Distributable',
         'Operating System :: OS Independent',
@@ -30,6 +39,8 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
 
-    install_requires = []
+    install_requires = [],
+    
+    python_requires = '>=3.5',
 
 )

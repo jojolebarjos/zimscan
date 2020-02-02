@@ -9,7 +9,13 @@ Minimal ZIM file reader, designed for article streaming.
 Install using pip:
 
 ```
-pip install git+https://gitlab.com/jojolebarjos/zimscan.git
+pip install zimscan
+```
+
+Or from Git repository, for latest version:
+
+```
+pip install -U git+https://gitlab.com/jojolebarjos/zimscan.git
 ```
 
 Iterate over a records, which are binary file-like objects:

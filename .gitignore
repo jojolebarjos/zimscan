@@ -1,3 +1,9 @@
+
+/.vscode
+/build
+/dist
+/zimscan.egg-info
+
 *.pyc
 *.txt
 *.zim

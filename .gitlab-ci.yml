@@ -1,0 +1,11 @@
+
+pypi:
+  image: python:3.6-alpine
+  stage: deploy
+  cache: {}
+  only:
+    - tags
+  script:
+    - pip install -U twine
+    - python setup.py sdist
+    #- twine upload --repository-url https://test.pypi.org/legacy/ dist/*
