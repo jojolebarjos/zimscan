@@ -32,11 +32,11 @@ with Reader(open('wikipedia_en_all_nopic_2019-10.zim', 'rb')) as reader:
 
 ## Links
 
- * [ZIM file format](https://openzim.org/wiki/ZIM_file_format)
- * [Kiwix ZIM repository](http://download.kiwix.org/zim/)
- * [Wikipedia ZIM dumps](https://dumps.wikimedia.org/other/kiwix/zim/wikipedia/)
+ * [ZIM file format](https://openzim.org/wiki/ZIM_file_format), official documentation
+ * [Kiwix ZIM repository](http://download.kiwix.org/zim/), to download official ZIM files
+ * [Wikipedia ZIM dumps](https://dumps.wikimedia.org/other/kiwix/zim/wikipedia/), to download Wikipedia ZIM files
  * [ZIMply](https://github.com/kimbauters/ZIMply), a ZIM file reader in the browser, in Python
  * [libzim](https://github.com/openzim/libzim), the reference implementation, in C++
  * [pyzim](https://github.com/pediapress/pyzim), Python wrapper for libzim
  * [pyzim](https://framagit.org/mgautierfr/pyzim), another Python wrapper for libzim
- * [Internet In A Box](https://github.com/iiab/internet-in-a-box)
+ * [Internet In A Box](https://github.com/iiab/internet-in-a-box), a project to bundle open knowledge locally
