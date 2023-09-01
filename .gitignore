@@ -1,9 +1,15 @@
-
-/.vscode
-/build
-/dist
-/zimscan.egg-info
-
+# Python cache
 *.pyc
+.ipynb_checkpoints/
+*.egg-info/
+
+# IDE settings
+.vscode/
+.idea/
+
+# OSX-specific
+.DS_Store
+
+# Data files
 *.txt
 *.zim

@@ -1,0 +1,51 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "zimscan"
+version = "0.1.0"
+description = "ZIM file iterator"
+license = "MIT"
+authors = [
+    "Johan Berdat <jojolebarjos@gmail.com>",
+]
+readme = "README.md"
+repository = "https://github.com/jojolebarjos/zimscan"
+keywords = [
+    "zim",
+    "iterator",
+    "wikipedia",
+    "gutenberg",
+    "kiwix",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing",
+    "Topic :: Utilities",
+]
+packages = [{include = "zimscan", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.5"
+numpy = "^1.24"
+
+[tool.black]
+line-length = 88
+target-version = ['py310', 'py311']
+include = '\.pyi?$'
+
+[tool.pylint]
+max-line-length = 88
+disable = [
+    "C0114", # (missing-module-docstring)
+    "C0115", # (missing-class-docstring)
+    "C0116", # (missing-function-docstring)
+    "R0903", # (too-few-public-methods)
+    "R0913", # (too-many-arguments)
+    "W0511", # (fixme)
+]

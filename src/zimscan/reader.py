@@ -34,7 +34,7 @@ class Reader:
         files.
 
         >>> from zimscan import Reader
-        >>> with Reader(open('file.zim', 'rb')) as reader:
+        >>> with Reader(open("file.zim", "rb")) as reader:
         ...     for record in reader:
         ...         data = record.read()
         ...         ... # do something

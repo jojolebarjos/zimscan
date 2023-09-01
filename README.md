@@ -1,4 +1,3 @@
-
 # ZIM Scan
 
 Minimal ZIM file reader, designed for article streaming.
@@ -15,7 +14,7 @@ pip install zimscan
 Or from Git repository, for latest version:
 
 ```
-pip install -U git+https://gitlab.com/jojolebarjos/zimscan.git
+pip install -U git+https://github.com/jojolebarjos/zimscan.git
 ```
 
 Iterate over a records, which are binary file-like objects:
@@ -23,7 +22,7 @@ Iterate over a records, which are binary file-like objects:
 ```python
 from zimscan import Reader
 
-with Reader(open('wikipedia_en_all_nopic_2019-10.zim', 'rb')) as reader:
+with Reader(open("wikipedia_en_all_nopic_2019-10.zim", "rb")) as reader:
     for record in reader:
         data = record.read()
         ...
