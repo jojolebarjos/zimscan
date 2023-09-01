@@ -1,28 +1,28 @@
 import io
 import lzma
-import numpy
 import struct
+
+import numpy as np
 
 from .record import Record
 
 
 # Define little-endian integer types
-uint8 = numpy.dtype(numpy.uint8).newbyteorder("<")
-uint16 = numpy.dtype(numpy.uint16).newbyteorder("<")
-uint32 = numpy.dtype(numpy.uint32).newbyteorder("<")
-uint64 = numpy.dtype(numpy.uint64).newbyteorder("<")
+uint8 = np.dtype(np.uint8).newbyteorder("<")
+uint16 = np.dtype(np.uint16).newbyteorder("<")
+uint32 = np.dtype(np.uint32).newbyteorder("<")
+uint64 = np.dtype(np.uint64).newbyteorder("<")
 
 
 # Define binary structures
 header = struct.Struct("<LHH16sLLQQQQLLQ")
 
 
-# Archive iterator
 class Reader:
     """ZIM archive reader.
 
-    This reader is designed to efficiently iterate through the whole archive.
-    Lookup by URL or title is not supported.
+    This reader is designed to efficiently iterate through the whole archive. Lookup by
+    URL or title is not supported.
 
     This objects is an iterator with known size, namely the number of articles.
 
@@ -30,8 +30,7 @@ class Reader:
         file: Readable and seekable file-like.
 
     Examples:
-        Process a local file, for instance to extract plain text from HTML
-        files.
+        Process a local file, for instance to extract plain text from HTML files.
 
         >>> from zimscan import Reader
         >>> with Reader(open("file.zim", "rb")) as reader:
@@ -77,7 +76,7 @@ class Reader:
 
         # Read cluster pointers
         self._file.seek(cluster_pointer_list_offset)
-        self._cluster_pointer_list = numpy.frombuffer(
+        self._cluster_pointer_list = np.frombuffer(
             self._file.read(8 * self._cluster_count), uint64
         )
 
@@ -119,7 +118,7 @@ class Reader:
             self._file.seek(self._cluster_pointer_list[self._cluster_index])
 
             # Read uncompressed cluster header
-            (mode,) = numpy.frombuffer(self._file.read(1), uint8)
+            (mode,) = np.frombuffer(self._file.read(1), uint8)
 
             # Wrap input based on compression mode
             compression = mode & 0x0F
@@ -136,15 +135,15 @@ class Reader:
 
             # Read first blob offset, used to detect blob count
             data = self._cluster_file.read(offset_type.itemsize)
-            (first_blob_offset,) = numpy.frombuffer(data, offset_type)
+            (first_blob_offset,) = np.frombuffer(data, offset_type)
             blob_offset_count = first_blob_offset // offset_type.itemsize
             self._blob_count = blob_offset_count - 1
 
             # Read all blob offsets
-            self._blob_offsets = numpy.empty(blob_offset_count, offset_type)
+            self._blob_offsets = np.empty(blob_offset_count, offset_type)
             self._blob_offsets[0] = first_blob_offset
             data = self._cluster_file.read(offset_type.itemsize * self._blob_count)
-            self._blob_offsets[1:] = numpy.frombuffer(data, offset_type)
+            self._blob_offsets[1:] = np.frombuffer(data, offset_type)
 
         # Prepare record
         length = (
@@ -155,16 +154,13 @@ class Reader:
         # TODO populate metadata, if requested
         return self._record
 
-    # Close underlying file
     def close(self):
         if self._record is not None:
             self._record._file = None
         self._file.close()
 
-    # Entering context is a no-op
     def __enter__(self):
         return self
 
-    # Close on context exit
     def __exit__(self, type, value, traceback):
         self.close()

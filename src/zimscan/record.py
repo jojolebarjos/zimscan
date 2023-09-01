@@ -1,12 +1,11 @@
 import io
 
 
-# Archive entry container
 class Record(io.RawIOBase):
     """ZIM article.
 
-    This is a binary, read-only and non-seekable file-like. It is invalidated
-    when the next record is requested.
+    This is a binary, read-only and non-seekable file-like. It is invalidated when the
+    next record is requested.
 
     """
 
@@ -16,11 +15,9 @@ class Record(io.RawIOBase):
         self._file = file
         self._remaining = length
 
-    # Read-only
     def readable(self):
         return True
 
-    # Everything else is already implemented in abstract parent
     def readinto(self, buffer):
 
         # Check that we are still allowed to read
