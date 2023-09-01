@@ -1,4 +1,3 @@
-
 import io
 import lzma
 import numpy
@@ -8,14 +7,14 @@ from .record import Record
 
 
 # Define little-endian integer types
-uint8 = numpy.dtype(numpy.uint8).newbyteorder('<')
-uint16 = numpy.dtype(numpy.uint16).newbyteorder('<')
-uint32 = numpy.dtype(numpy.uint32).newbyteorder('<')
-uint64 = numpy.dtype(numpy.uint64).newbyteorder('<')
+uint8 = numpy.dtype(numpy.uint8).newbyteorder("<")
+uint16 = numpy.dtype(numpy.uint16).newbyteorder("<")
+uint32 = numpy.dtype(numpy.uint32).newbyteorder("<")
+uint64 = numpy.dtype(numpy.uint64).newbyteorder("<")
 
 
 # Define binary structures
-header = struct.Struct('<LHH16sLLQQQQLLQ')
+header = struct.Struct("<LHH16sLLQQQQLLQ")
 
 
 # Archive iterator
@@ -63,14 +62,14 @@ class Reader:
             mime_list_offset,
             main_page,
             layout_page,
-            checksum_offset
+            checksum_offset,
         ) = header.unpack(self._file.read(header.size))
 
         # Check format
         if magic != 72173914:
-            raise IOError('invalid ZIM file')
+            raise IOError("invalid ZIM file")
         if major != 5 and major != 6:
-            raise IOError(f'ZIM format version {major}.{minor} not supported')
+            raise IOError(f"ZIM format version {major}.{minor} not supported")
 
         # TODO load MIME type list (only if metadata is requested)
         # TODO load directories, if requested
@@ -78,7 +77,9 @@ class Reader:
 
         # Read cluster pointers
         self._file.seek(cluster_pointer_list_offset)
-        self._cluster_pointer_list = numpy.frombuffer(self._file.read(8 * self._cluster_count), uint64)
+        self._cluster_pointer_list = numpy.frombuffer(
+            self._file.read(8 * self._cluster_count), uint64
+        )
 
         # Iterator state
         self._cluster_index = -1
@@ -118,10 +119,10 @@ class Reader:
             self._file.seek(self._cluster_pointer_list[self._cluster_index])
 
             # Read uncompressed cluster header
-            mode, = numpy.frombuffer(self._file.read(1), uint8)
+            (mode,) = numpy.frombuffer(self._file.read(1), uint8)
 
             # Wrap input based on compression mode
-            compression = mode & 0x0f
+            compression = mode & 0x0F
             if compression == 4:
                 self._cluster_file = lzma.open(self._file)
             else:
@@ -135,7 +136,7 @@ class Reader:
 
             # Read first blob offset, used to detect blob count
             data = self._cluster_file.read(offset_type.itemsize)
-            first_blob_offset, = numpy.frombuffer(data, offset_type)
+            (first_blob_offset,) = numpy.frombuffer(data, offset_type)
             blob_offset_count = first_blob_offset // offset_type.itemsize
             self._blob_count = blob_offset_count - 1
 
@@ -146,7 +147,10 @@ class Reader:
             self._blob_offsets[1:] = numpy.frombuffer(data, offset_type)
 
         # Prepare record
-        length = self._blob_offsets[self._blob_index + 1] - self._blob_offsets[self._blob_index]
+        length = (
+            self._blob_offsets[self._blob_index + 1]
+            - self._blob_offsets[self._blob_index]
+        )
         self._record = Record(self._cluster_file, length)
         # TODO populate metadata, if requested
         return self._record

@@ -1,4 +1,3 @@
-
 import io
 
 
@@ -26,12 +25,12 @@ class Record(io.RawIOBase):
 
         # Check that we are still allowed to read
         if self._file is None or self.closed:
-            raise RuntimeError('Cannot read from invalidated record')
+            raise RuntimeError("Cannot read from invalidated record")
 
         # Make sure we do not read more than our blob
         requested = len(buffer)
         if requested > self._remaining:
-            buffer = memoryview(buffer)[:self._remaining]
+            buffer = memoryview(buffer)[: self._remaining]
 
         # Ask underlying file for content
         size = self._file.readinto(buffer)
