@@ -1,0 +1,8 @@
+-e .
+black~=22.8
+mypy~=1.4
+numpy~=1.24
+pre-commit~=3.3
+pylint~=2.17
+pytest~=7.4
+zstandard~=0.21
