@@ -4,6 +4,7 @@ import struct
 
 import numpy as np
 
+from .file import BufferedFile
 from .record import Record
 
 
@@ -42,13 +43,12 @@ class Reader:
 
     """
 
-    def __init__(self, file):
+    def __init__(self, file, *, buffer_size=io.DEFAULT_BUFFER_SIZE):
         # TODO add parameter to choose whether to get meta (enabled by default)
         # TODO avoid unnecessary seeks
 
         # Wrap in buffer, to ensure exact read size
-        # TODO should we also handle non-seekable files?
-        self._file = io.BufferedReader(file)
+        self._file = BufferedFile(file, buffer_size=buffer_size)
         self._zero_offset = self._file.tell()
 
         # Read header
@@ -135,15 +135,12 @@ class Reader:
         self._blob_offsets = None
         self._record = None
 
-    # Number of article is known
     def __len__(self):
         return len(self._directories)
 
-    # The reader iself is an iterator
     def __iter__(self):
         return self
 
-    # Advance
     def __next__(self):
 
         # Invalidate current record, if any

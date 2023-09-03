@@ -2,7 +2,7 @@ import io
 
 
 class Record(io.RawIOBase):
-    """ZIM article.
+    """ZIM content entry.
 
     This is a binary, read-only and non-seekable file-like. It is invalidated when the
     next record is requested.
