@@ -9,15 +9,24 @@ class Record(io.RawIOBase):
 
     """
 
-    def __init__(self, mime_type, namespace, url, title, revision, file, length):
+    def __init__(
+        self,
+        file,
+        length,
+        mime_type=None,
+        namespace=None,
+        url=None,
+        title=None,
+        revision=0,
+    ):
+        self.length = length
+        self._file = file
+        self._remaining = length
         self.mime_type = mime_type
         self.namespace = namespace
         self.url = url
         self.title = title
         self.revision = revision
-        self.length = length
-        self._file = file
-        self._remaining = length
 
     def readable(self):
         return True

@@ -42,7 +42,7 @@ if __name__ == "__main__":
         file.write("title\tipa\n")
 
         # Stream records
-        with Reader(open(args.input_path, "rb")) as reader:
+        with Reader(open(args.input_path, "rb"), skip_metadata=True) as reader:
             for record in tqdm(reader):
 
                 # Get all bytes

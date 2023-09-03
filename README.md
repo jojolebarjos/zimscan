@@ -22,7 +22,8 @@ Iterate over a records, which are binary file-like objects:
 ```python
 from zimscan import Reader
 
-with Reader(open("wikipedia_en_all_nopic_2019-10.zim", "rb")) as reader:
+path = "wikipedia_en_all_nopic_2019-10.zim"
+with Reader(open(path, "rb"), skip_metadata=True) as reader:
     for record in reader:
         data = record.read()
         ...

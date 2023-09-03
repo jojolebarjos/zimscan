@@ -43,9 +43,13 @@ class Reader:
 
     """
 
-    def __init__(self, file, *, buffer_size=io.DEFAULT_BUFFER_SIZE):
-        # TODO add parameter to choose whether to get meta (enabled by default)
-        # TODO avoid unnecessary seeks
+    def __init__(
+        self,
+        file,
+        *,
+        skip_metadata: bool = False,
+        buffer_size=io.DEFAULT_BUFFER_SIZE,
+    ):
 
         # Wrap in buffer, to ensure exact read size
         self._file = BufferedFile(file, buffer_size=buffer_size)
@@ -74,52 +78,57 @@ class Reader:
         if major not in (5, 6):
             raise IOError(f"ZIM format version {major}.{minor} not supported")
 
-        # Load MIME type list
-        # Note: this should always be just after the header
-        self._file.seek(self._zero_offset + self._mime_list_offset)
+        # Collect directory entries, if requested
         self._mime_types = []
-        while True:
-            mime_type = _read_string(self._file)
-            if not mime_type:
-                break
-            self._mime_types.append(mime_type)
-
-        # Load URL pointer list
-        self._file.seek(self._zero_offset + self._url_pointer_list_offset)
-        self._url_pointer_list = np.frombuffer(
-            self._file.read(8 * self._entry_count), uint64
-        )
-
-        # Load directories
-        directory_offsets = np.sort(self._url_pointer_list)
         self._directories = {}
-        for offset in directory_offsets:
-            self._file.seek(self._zero_offset + int(offset))
+        if not skip_metadata:
 
-            # Get MIME type
-            (mime_type_index,) = ENTRY_HEADER.unpack(self._file.read(ENTRY_HEADER.size))
+            # Load MIME type list
+            # Note: this should always be just after the header
+            self._file.seek(self._zero_offset + self._mime_list_offset)
+            while True:
+                mime_type = _read_string(self._file)
+                if not mime_type:
+                    break
+                self._mime_types.append(mime_type)
 
-            # Ignore link target, deleted entries, and redirects
-            # TODO is there a meaningful way to provide redirects?
-            if mime_type_index in (0xFFFE, 0xFFFD, 0xFFFF):
-                continue
+            # Load URL pointer list
+            self._file.seek(self._zero_offset + self._url_pointer_list_offset)
+            url_pointer_list = np.frombuffer(
+                self._file.read(8 * self._entry_count), uint64
+            )
 
-            # Decode the remaining part of the content entry metadata
-            (
-                parameter_length,
-                namespace,
-                revision,
-                cluster_index,
-                blob_index,
-            ) = CONTENT_ENTRY.unpack(self._file.read(CONTENT_ENTRY.size))
-            url = _read_string(self._file)
-            title = _read_string(self._file)
+            # Load directories
+            directory_offsets = np.sort(url_pointer_list)
+            for offset in directory_offsets:
+                self._file.seek(self._zero_offset + int(offset))
 
-            # Collect relevant metadata for later
-            mime_type = self._mime_types[mime_type_index]
-            key = cluster_index, blob_index
-            value = namespace.decode("ascii"), mime_type, url, title, revision
-            self._directories[key] = value
+                # Get MIME type
+                (mime_type_index,) = ENTRY_HEADER.unpack(
+                    self._file.read(ENTRY_HEADER.size)
+                )
+
+                # Ignore link target, deleted entries, and redirects
+                # TODO is there a meaningful way to provide redirects?
+                if mime_type_index in (0xFFFE, 0xFFFD, 0xFFFF):
+                    continue
+
+                # Decode the remaining part of the content entry metadata
+                (
+                    parameter_length,
+                    namespace,
+                    revision,
+                    cluster_index,
+                    blob_index,
+                ) = CONTENT_ENTRY.unpack(self._file.read(CONTENT_ENTRY.size))
+                url = _read_string(self._file)
+                title = _read_string(self._file)
+
+                # Collect relevant metadata for later
+                mime_type = self._mime_types[mime_type_index]
+                key = cluster_index, blob_index
+                value = namespace.decode("ascii"), mime_type, url, title, revision
+                self._directories[key] = value
 
         # Read cluster pointers
         self._file.seek(self._zero_offset + self._cluster_pointer_list_offset)
@@ -168,10 +177,14 @@ class Reader:
 
             # Wrap input based on compression mode
             compression = mode & 0x0F
-            if compression == 4:
-                self._cluster_file = lzma.open(self._file)
-            else:
+            if compression == 1:
                 self._cluster_file = self._file
+            elif compression == 4:
+                self._cluster_file = lzma.open(self._file)
+            elif compression == 5:
+                raise NotImplementedError
+            else:
+                raise KeyError(compression)
 
             # Detect blob offset size
             if mode & 0b10000:
@@ -197,17 +210,22 @@ class Reader:
             - self._blob_offsets[self._blob_index]
         )
         key = self._cluster_index, self._blob_index
-        namespace, mime_type, url, title, revision = self._directories[key]
-        self._record = Record(
-            mime_type,
-            namespace,
-            url,
-            title,
-            revision,
-            self._cluster_file,
-            length,
-        )
-        return self._record
+        value = self._directories.get(key)
+        if value is not None:
+            namespace, mime_type, url, title, revision = value
+            record = Record(
+                self._cluster_file,
+                length,
+                mime_type,
+                namespace,
+                url,
+                title,
+                revision,
+            )
+        else:
+            record = Record(self._cluster_file, length)
+        self._record = record
+        return record
 
     def close(self):
         if self._record is not None:
