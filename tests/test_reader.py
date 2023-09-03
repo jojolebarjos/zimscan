@@ -13,12 +13,25 @@ def test_example():
 
     file = io.BytesIO(ZIM_EXAMPLE)
     reader = Reader(file)
+
+    assert len(reader) == 2
+
     iterator = iter(reader)
 
     record = next(iterator)
+    assert record.mime_type == "text/html"
+    assert record.namespace == "A"
+    assert record.url == "Auto"
+    assert record.title == ""
+    assert record.revision == 0
     assert record.read() == b"<h1>Auto</h1>"
 
     record = next(iterator)
+    assert record.mime_type == "text/plain"
+    assert record.namespace == "B"
+    assert record.url == "Auto"
+    assert record.title == ""
+    assert record.revision == 0
     assert record.read() == b"Auto"
 
     with pytest.raises(StopIteration):
