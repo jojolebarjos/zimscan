@@ -49,7 +49,7 @@ class Reader:
         self,
         file,
         *,
-        skip_metadata: bool = False,
+        skip_metadata=False,
         buffer_size=io.DEFAULT_BUFFER_SIZE,
     ):
 
