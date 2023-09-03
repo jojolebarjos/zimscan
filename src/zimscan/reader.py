@@ -4,6 +4,8 @@ import struct
 
 import numpy as np
 
+import zstandard as zstd
+
 from .file import BufferedFile
 from .record import Record
 
@@ -79,18 +81,18 @@ class Reader:
             raise IOError(f"ZIM format version {major}.{minor} not supported")
 
         # Collect directory entries, if requested
-        self._mime_types = []
-        self._directories = {}
+        self._directories = None
         if not skip_metadata:
 
             # Load MIME type list
             # Note: this should always be just after the header
             self._file.seek(self._zero_offset + self._mime_list_offset)
+            mime_types = []
             while True:
                 mime_type = _read_string(self._file)
                 if not mime_type:
                     break
-                self._mime_types.append(mime_type)
+                mime_types.append(mime_type)
 
             # Load URL pointer list
             self._file.seek(self._zero_offset + self._url_pointer_list_offset)
@@ -100,6 +102,7 @@ class Reader:
 
             # Load directories
             directory_offsets = np.sort(url_pointer_list)
+            self._directories = {}
             for offset in directory_offsets:
                 self._file.seek(self._zero_offset + int(offset))
 
@@ -125,7 +128,7 @@ class Reader:
                 title = _read_string(self._file)
 
                 # Collect relevant metadata for later
-                mime_type = self._mime_types[mime_type_index]
+                mime_type = mime_types[mime_type_index]
                 key = cluster_index, blob_index
                 value = namespace.decode("ascii"), mime_type, url, title, revision
                 self._directories[key] = value
@@ -144,7 +147,12 @@ class Reader:
         self._blob_offsets = None
         self._record = None
 
+        # Instanciate zstandard decompressor once for all
+        self._zstd_decompressor = zstd.ZstdDecompressor()
+
     def __len__(self):
+        if self._directories is None:
+            return NotImplemented
         return len(self._directories)
 
     def __iter__(self):
@@ -182,7 +190,7 @@ class Reader:
             elif compression == 4:
                 self._cluster_file = lzma.open(self._file)
             elif compression == 5:
-                raise NotImplementedError
+                self._cluster_file = self._zstd_decompressor.stream_reader(self._file)
             else:
                 raise KeyError(compression)
 
@@ -209,9 +217,11 @@ class Reader:
             self._blob_offsets[self._blob_index + 1]
             - self._blob_offsets[self._blob_index]
         )
-        key = self._cluster_index, self._blob_index
-        value = self._directories.get(key)
-        if value is not None:
+        if self._directories is None:
+            record = Record(self._cluster_file, length)
+        else:
+            key = self._cluster_index, self._blob_index
+            value = self._directories[key]
             namespace, mime_type, url, title, revision = value
             record = Record(
                 self._cluster_file,
@@ -222,8 +232,7 @@ class Reader:
                 title,
                 revision,
             )
-        else:
-            record = Record(self._cluster_file, length)
+
         self._record = record
         return record
 

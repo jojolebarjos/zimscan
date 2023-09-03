@@ -39,6 +39,8 @@ class Record(io.RawIOBase):
 
         # Make sure we do not read more than our blob
         requested = len(buffer)
+        if requested == 0 or self._remaining == 0:
+            return 0
         if requested > self._remaining:
             buffer = memoryview(buffer)[: self._remaining]
 
