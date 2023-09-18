@@ -33,7 +33,7 @@ packages = [{include = "zimscan", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.6"
 numpy = "^1.18"
-zstandard = "^0.16.0"
+zstandard = ">=0.16.0"
 
 [tool.black]
 line-length = 88

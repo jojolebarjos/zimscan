@@ -11,4 +11,6 @@
 .DS_Store
 
 # Data files
+*.gz
+*.whl
 *.zim
